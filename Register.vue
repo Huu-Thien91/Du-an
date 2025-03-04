@@ -73,7 +73,7 @@ const submitForm = () => {
 </template>
 
 <style scoped>
-@import './src/assets/css/auth.css';
+@import "/src/assets/css/auth.css";
 .msg-error{
     color: red;
 }
