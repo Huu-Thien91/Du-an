@@ -1,7 +1,6 @@
 <script setup>
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-
 const loginForm = ref({
   email: '',
   password: ''
@@ -30,14 +29,19 @@ const submitLoginForm = () => {
   if (validateLoginForm()) {
     console.log('Form đăng nhập đã được gửi:', loginForm.value);
     // Gửi dữ liệu tới server hoặc xử lý đăng nhập ở đây
+    router.push('/admin/dashboard');
   }
 };
 
 const goToRegister = () => {
   router.push('/register');
 };
+const goToDashboard = () => {
+  router.push('/admin/dashboard');
+};
 
 const forgotPassword = () => {
+  router.push('/forgotpassword')
   // Logic cho quên mật khẩu
   console.log('Quên mật khẩu');
 };
@@ -68,7 +72,7 @@ const forgotPassword = () => {
 </template>
 
 <style scoped>
-@import './src/assets/css/auth.css';
+@import "/src/assets/css/auth.css";
 .msg-error{
     color: red;
 }
