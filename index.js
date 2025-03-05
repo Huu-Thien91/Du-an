@@ -10,8 +10,9 @@ import Finance from "@/components/admin/Finance/Finance.vue";
 import Transactions from "@/components/admin/Transactions.vue";
 import user from "@/components/admin/user.vue";
 import setting from "@/components/admin/Setting.vue";
-import GenreManager from "@/components/admin/Movie/GenreManager.vue";
-
+import ContentManagement from "@/components/admin/ContentManagement.vue";
+import StatisticsAndReports from "@/components/admin/StatisticsAndReports.vue";
+import VIPManagement from "@/components/admin/VIPManagement.vue";
 const routes = [{
     path: "/register",
     name: "register",
@@ -68,11 +69,20 @@ const routes = [{
         component: setting
     },
     {
-        path: "/admin/genremanager",
-        name: "genremanager",
-        component: GenreManager
+        path: "/admin/contentmanagement",
+        name: "contentmanagement",
+        component: ContentManagement
     },
-    
+    {
+        path: "/admin/statisticsandreports",
+        name: "Thongkevabaocao",
+        component: StatisticsAndReports
+    },
+    {
+        path: "/admin/vipmanagenment",
+        name: "vipmanagenment",
+        component: VIPManagement
+    },
 ];
 const router = createRouter({
     history: createWebHistory(),
