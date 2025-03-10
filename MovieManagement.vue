@@ -1,167 +1,132 @@
 <template>
   <div>
     <button @click="goBack" class="back-button">← Quay lại</button>
-  <div class="movie-management">
+    <div class="movie-management">
+      <h1>🎥 Quản lý Phim</h1>
 
-    <h1>Quản lý Phim</h1>
+      <!-- Tabs -->
+      <div class="tabs">
+        <button @click="selectTab('movies')" :class="{ active: currentTab === 'movies' }">Phim Lẻ</button>
+        <button @click="selectTab('series')" :class="{ active: currentTab === 'series' }">Phim Bộ</button>
+        <button @click="selectTab('episodes')" :class="{ active: currentTab === 'episodes' }">Tập Phim</button>
+      </div>
 
-    <div class="tabs">
-      <button @click="selectTab('manageMovies')" :class="{ active: currentTab === 'manageMovies' }">Thêm, Sửa, Xóa Phim</button>
-      <button @click="selectTab('categories')" :class="{ active: currentTab === 'categories' }">Danh mục Phim</button>
-      <button @click="selectTab('videoManagement')" :class="{ active: currentTab === 'videoManagement' }">Quản lý Video</button>
-      <button @click="selectTab('movieDetails')" :class="{ active: currentTab === 'movieDetails' }">Thông tin Chi tiết</button>
+      <!-- Quản lý phim lẻ -->
+      <div v-if="currentTab === 'movies'" class="tab-content">
+        <h2>Quản lý Phim Lẻ</h2>
+        <form @submit.prevent="submitMovie" class="movie-form">
+          <div class="form-group">
+            <label>Tiêu đề:</label>
+            <input type="text" v-model="movieForm.title" placeholder="Nhập tiêu đề..." required />
+          </div>
+          <div class="form-group">
+            <label>Đạo diễn:</label>
+            <input type="text" v-model="movieForm.director" placeholder="Nhập đạo diễn..." required />
+          </div>
+          <div class="form-group">
+            <label>Thể loại:</label>
+            <input type="text" v-model="movieForm.genre" placeholder="Nhập thể loại..." required />
+          </div>
+          <div class="form-group">
+            <label>Rating:</label>
+            <input type="number" v-model="movieForm.rating" placeholder="Nhập rating..." min="0" max="10" step="0.1"
+              required />
+          </div>
+          <div class="form-group">
+            <label>Trạng thái:</label>
+            <select v-model="movieForm.status" required>
+              <option value="Công chiếu">Công chiếu</option>
+              <option value="Sắp ra mắt">Sắp ra mắt</option>
+            </select>
+          </div>
+          <button type="submit" class="submit-button">{{ movieForm.editing ? 'Cập nhật' : 'Thêm Phim' }}</button>
+        </form>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Tiêu đề</th>
+              <th>Đạo diễn</th>
+              <th>Thể loại</th>
+              <th>Rating</th>
+              <th>Trạng thái</th>
+              <th>Hành động</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(movie, index) in movies" :key="movie.id">
+              <td>{{ movie.id }}</td>
+              <td>{{ movie.title }}</td>
+              <td>{{ movie.director }}</td>
+              <td>{{ movie.genre }}</td>
+              <td>{{ movie.rating }}</td>
+              <td>{{ movie.status }}</td>
+              <td>
+                <button @click="editMovie(index)" class="edit-button">Sửa</button>
+                <button @click="deleteMovie(index)" class="delete-button">Xóa</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
-
-    <!-- Tab: Thêm, Sửa, Xóa Phim -->
-    <div v-if="currentTab === 'manageMovies'" class="tab-content">
-      <h2>Thêm, Sửa, Xóa Phim</h2>
-      <form @submit.prevent="addMovie">
-        <div class="form-group">
-          <label for="name">Tên phim</label>
-          <input type="text" id="name" v-model="newMovie.name" placeholder="Nhập tên phim" />
-        </div>
-        <div class="form-group">
-          <label for="genre">Thể loại</label>
-          <input type="text" id="genre" v-model="newMovie.genre" placeholder="Nhập thể loại" />
-        </div>
-        <button type="submit" class="add-button">Thêm phim</button>
-      </form>
-
-      <h3>Danh sách phim</h3>
-      <table class="movie-table">
-        <thead>
-          <tr>
-            <th>Tên phim</th>
-            <th>Thể loại</th>
-            <th>Hành động</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="(movie, index) in movies" :key="index">
-            <td>{{ movie.name }}</td>
-            <td>{{ movie.genre }}</td>
-            <td>
-              <button @click="editMovie(index)" class="edit-button">Sửa</button>
-              <button @click="deleteMovie(index)" class="delete-button">Xóa</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Tab: Danh mục Phim -->
-    <div v-if="currentTab === 'categories'" class="tab-content">
-      <h2>Danh mục Phim</h2>
-      <form @submit.prevent="addCategory">
-        <div class="form-group">
-          <label for="category">Tên danh mục</label>
-          <input type="text" id="category" v-model="newCategory" placeholder="Nhập tên danh mục" />
-        </div>
-        <button type="submit" class="add-button">Thêm danh mục</button>
-      </form>
-      <ul>
-        <li v-for="(category, index) in categories" :key="index">{{ category }}</li>
-      </ul>
-    </div>
-
-    <!-- Tab: Quản lý Video -->
-    <div v-if="currentTab === 'videoManagement'" class="tab-content">
-      <h2>Quản lý Video</h2>
-      <form @submit.prevent="uploadVideo">
-        <div class="form-group">
-          <label for="videoFile">Tải lên Video</label>
-          <input type="file" id="videoFile" @change="handleVideoUpload" />
-        </div>
-        <button type="submit" class="upload-button">Tải lên</button>
-      </form>
-    </div>
-
-    <!-- Tab: Thông tin Chi tiết -->
-    <div v-if="currentTab === 'movieDetails'" class="tab-content">
-      <h2>Thông tin Chi tiết Phim</h2>
-      <form @submit.prevent="saveMovieDetails">
-        <div class="form-group">
-          <label for="description">Mô tả</label>
-          <textarea id="description" v-model="movieDetails.description"></textarea>
-        </div>
-        <div class="form-group">
-          <label for="actors">Diễn viên</label>
-          <input type="text" id="actors" v-model="movieDetails.actors" placeholder="Nhập tên diễn viên" />
-        </div>
-        <button type="submit" class="save-button">Lưu thông tin</button>
-      </form>
-    </div>
-  </div>
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue';
-import {useRouter} from 'vue-router';
+import { useRouter } from 'vue-router';
 const router = useRouter();
+const goBack = () => {
+  router.go(-1);
+};
 
+const currentTab = ref('movies');
+const movies = ref([
+  { id: 1, title: 'Phim 1', director: 'Đạo Diễn A', genre: 'Hành Động', rating: 8.0, status: 'Công chiếu' },
+  { id: 2, title: 'Phim 2', director: 'Đạo Diễn B', genre: 'Tình Cảm', rating: 7.5, status: 'Sắp ra mắt' },
+]);
+const movieForm = ref({
+  id: null,
+  title: '',
+  director: '',
+  genre: '',
+  rating: '',
+  status: '',
+  editing: false,
+});
 
-const currentTab = ref('manageMovies');
-const movies = ref([]);
-const newMovie = ref({ name: '', genre: '' });
-const categories = ref([]);
-const newCategory = ref('');
-const movieDetails = ref({ description: '', actors: '' });
-const selectedVideo = ref(null);
-
-// Chuyển tab
 const selectTab = (tab) => {
   currentTab.value = tab;
 };
 
-// Quản lý phim
-const addMovie = () => {
-  movies.value.push({ ...newMovie.value });
-  newMovie.value = { name: '', genre: '' };
+const submitMovie = () => {
+  if (movieForm.value.editing) {
+    const index = movies.value.findIndex((movie) => movie.id === movieForm.value.id);
+    if (index !== -1) {
+      movies.value[index] = { ...movieForm.value };
+    }
+  } else {
+    movieForm.value.id = Date.now();
+    movies.value.push({ ...movieForm.value });
+  }
+  resetForm();
 };
+
 const editMovie = (index) => {
-  alert(`Chỉnh sửa thông tin phim: ${movies.value[index].name}`);
+  Object.assign(movieForm.value, movies.value[index], { editing: true });
 };
+
 const deleteMovie = (index) => {
   movies.value.splice(index, 1);
 };
 
-// Quản lý danh mục
-const addCategory = () => {
-  categories.value.push(newCategory.value);
-  newCategory.value = '';
-};
-
-// Quản lý video
-const handleVideoUpload = (event) => {
-  selectedVideo.value = event.target.files[0];
-  alert(`Video đã chọn: ${selectedVideo.value.name}`);
-};
-const uploadVideo = () => {
-  if (selectedVideo.value) {
-    alert(`Video "${selectedVideo.value.name}" đã được tải lên.`);
-  } else {
-    alert('Vui lòng chọn video trước khi tải lên.');
-  }
-};
-
-// Thông tin phim
-const saveMovieDetails = () => {
-  alert('Thông tin phim đã được lưu.');
-};
-
-// Quay lại
-const goBack = () => {
-  router.go(-1);    
+const resetForm = () => {
+  Object.assign(movieForm.value, { id: null, title: '', director: '', genre: '', rating: '', status: '', editing: false });
 };
 </script>
 
 <style scoped>
-body {
-  font-family: 'Arial', sans-serif;
-  background-color: #f9f9f9;
-  margin: 0;
-}
 .back-button {
   margin: 20px;
   background-color: #3498DB;
@@ -177,105 +142,145 @@ body {
   background-color: #2980B9;
 }
 
-.movie-management {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 20px;
-  background-color: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+body {
   font-family: 'Arial', sans-serif;
-  animation: fadeIn 1s ease-in-out;
+  background: linear-gradient(135deg, #74ebd5, #acb6e5);
+  margin: 0;
+  padding: 0;
 }
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+
+.movie-management {
+  max-width: 800px;
+  margin: 20px auto;
+  padding: 20px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 h1 {
   text-align: center;
   color: #34495e;
+  font-size: 24px;
   margin-bottom: 20px;
 }
 
 .tabs {
   display: flex;
-  justify-content: center;
+  justify-content: space-around;
   margin-bottom: 20px;
-  gap: 10px;
 }
 
 .tabs button {
   padding: 10px 20px;
-  font-size: 14px;
+  background: #3498db;
+  color: #fff;
   border: none;
-  border-radius: 6px;
-  background-color: #3498db;
-  color: white;
+  border-radius: 5px;
+  font-size: 14px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.tabs button:hover {
-  background-color: #2980b9;
+  transition: 0.3s;
 }
 
 .tabs button.active {
-  background-color: #1abc9c;
+  background: #2ecc71;
+}
+
+.tabs button:hover {
+  background: #2980b9;
 }
 
 .tab-content {
-  padding: 20px;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.movie-form {
+  margin-bottom: 20px;
 }
 
 .form-group {
   margin-bottom: 15px;
 }
 
-label {
-  display: block;
-  font-weight: bold;
-  margin-bottom: 5px;
-}
-
-input, textarea {
+input,
+select {
   width: 100%;
   padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  transition: border-color 0.3s;
 }
 
-button {
-  padding: 10px 15px;
+input:focus,
+select:focus {
+  border-color: #3498db;
+  outline: none;
+}
+
+.submit-button {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  background: #2ecc71;
+  color: #fff;
   border: none;
-  border-radius: 6px;
-  font-size: 14px;
-  color: white;
+  border-radius: 5px;
   cursor: pointer;
+  transition: 0.3s;
 }
 
-.add-button {
-  background-color: #4CAF50;
+.submit-button:hover {
+  background: #27ae60;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table th,
+.data-table td {
+  padding: 10px;
+  border: 1px solid #ddd;
+  text-align: left;
 }
 
 .edit-button {
-  background-color: #2980b9;
+  background: #f1c40f;
+  border: none;
+  color: #fff;
+  padding: 5px 10px;
+  border-radius: 5px;
+  margin-right: 5px;
+  cursor: pointer;
+}
+
+.edit-button:hover {
+  background: #f39c12;
 }
 
 .delete-button {
-  background-color: #e74c3c;
+  background: #e74c3c;
+  border: none;
+  color: #fff;
+  padding: 5px 10px;
+  border-radius: 5px;
+  cursor: pointer;
 }
 
-.upload-button, .save-button {
-  background-color: #3498db;
+.delete-button:hover {
+  background: #c0392b;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 </style>
