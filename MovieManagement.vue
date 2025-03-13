@@ -1,149 +1,132 @@
 <template>
-  <div>
+  <div class="content-management">
     <button @click="goBack" class="back-button">← Quay lại</button>
-    <div class="content-management">
-      <div class="movie-management">
-        <h1>🎥 Quản lý Phim</h1>
+    <div class="movie-management">
+      <h1>🎥 Quản lý Phim</h1>
 
-        <!-- Tabs -->
-        <div class="tabs">
-          <button @click="selectTab('movies')" :class="{ active: currentTab === 'movies' }">Phim Lẻ</button>
-          <button @click="selectTab('series')" :class="{ active: currentTab === 'series' }">Phim Bộ</button>
-        </div>
+      <!-- Tabs -->
+      <div class="tabs">
+        <button @click="selectTab('movies')" :class="{ active: currentTab === 'movies' }">Phim Lẻ</button>
+        <button @click="selectTab('series')" :class="{ active: currentTab === 'series' }">Phim Bộ</button>
+      </div>
 
-        <!-- Quản lý phim lẻ -->
-        <div v-if="currentTab === 'movies'" class="tab-content">
-          <h2>Quản lý Phim Lẻ</h2>
-          <form @submit.prevent="submitMovie" class="movie-form">
-            <div class="form-group">
-              <label>Tiêu đề:</label>
-              <input type="text" v-model="movieForm.title" placeholder="Nhập tiêu đề..." required />
-            </div>
-            <div class="form-group">
-              <label>Đạo diễn:</label>
-              <input type="text" v-model="movieForm.director" placeholder="Nhập đạo diễn..." required />
-            </div>
-            <div class="form-group">
-              <label>Thể loại:</label>
-              <input type="text" v-model="movieForm.genre" placeholder="Nhập thể loại..." required />
-            </div>
-            <div class="form-group">
-              <label>Rating:</label>
-              <input type="number" v-model="movieForm.rating" placeholder="Nhập rating..." min="0" max="10" step="0.1"
-                required />
-            </div>
-            <div class="form-group">
-              <label>Trạng thái:</label>
-              <select v-model="movieForm.status" required>
-                <option value="Công chiếu">Công chiếu</option>
-                <option value="Sắp ra mắt">Sắp ra mắt</option>
-              </select>
-            </div>
-            <button type="submit" class="submit-button">{{ movieForm.editing ? 'Cập nhật' : 'Thêm Phim Lẻ' }}</button>
-          </form>
-          <div class="table-container">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Tiêu đề</th>
-                  <th>Đạo diễn</th>
-                  <th>Thể loại</th>
-                  <th>Rating</th>
-                  <th>Trạng thái</th>
-                  <th>Hành động</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="(movie, index) in movieList" :key="movie.id">
-                  <td>{{ movie.id }}</td>
-                  <td>{{ movie.title }}</td>
-                  <td>{{ movie.director }}</td>
-                  <td>{{ movie.genre }}</td>
-                  <td>{{ movie.rating }}</td>
-                  <td>{{ movie.status }}</td>
-                  <td>
-                    <button @click="editMovie(index)" class="edit-button">Sửa</button>
-                    <button @click="deleteMovie(index)" class="delete-button">Xóa</button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+      <!-- Search Bar -->
+      <div class="search-bar">
+        <input type="text" v-model="searchQuery" placeholder="Tìm kiếm phim..." />
+      </div>
+
+      <!-- Quản lý phim lẻ -->
+      <div v-if="currentTab === 'movies'" class="tab-content">
+        <h2>Quản lý Phim Lẻ</h2>
+        <ul>
+          <li v-for="movie in filteredMovies" :key="movie.id">
+            {{ movie.title }} - {{ movie.director }} - {{ movie.genre }} - {{ movie.rating }} - {{ movie.status }}
+          </li>
+        </ul>
+        <form @submit.prevent="submitMovie" class="movie-form">
+          <div class="form-group" v-for="(value, key) in movieForm" :key="key">
+            <label>{{ formLabels[key] }}</label>
+            <input v-if="key !== 'status' && key !== 'editing' && key !== 'id'" type="text" v-model="movieForm[key]" required />
+            <select v-else-if="key === 'status'" v-model="movieForm.status" required>
+              <option value="Công chiếu">Công chiếu</option>
+              <option value="Sắp ra mắt">Sắp ra mắt</option>
+            </select>
           </div>
-        </div>
+          <button type="submit" class="submit-button">{{ movieForm.editing ? 'Cập nhật' : 'Thêm Phim Lẻ' }}</button>
+        </form>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Tiêu đề</th>
+              <th>Đạo diễn</th>
+              <th>Thể loại</th>
+              <th>Rating</th>
+              <th>Trạng thái</th>
+              <th>Hành động</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(movie, index) in filteredMovies" :key="movie.id">
+              <td>{{ movie.id }}</td>
+              <td>{{ movie.title }}</td>
+              <td>{{ movie.director }}</td>
+              <td>{{ movie.genre }}</td>
+              <td>{{ movie.rating }}</td>
+              <td>{{ movie.status }}</td>
+              <td>
+                <button @click="editMovie(index)" class="edit-button">Sửa</button>
+                <button @click="deleteMovie(index)" class="delete-button">Xóa</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
-        <!-- Quản lý phim bộ -->
-        <div v-if="currentTab === 'series'" class="tab-content">
-          <h2>Quản lý Phim Bộ</h2>
-          <form @submit.prevent="submitSeries" class="movie-form">
-            <div class="form-group">
-              <label>Tiêu đề:</label>
-              <input type="text" v-model="seriesForm.title" placeholder="Nhập tiêu đề..." required />
-            </div>
-            <div class="form-group">
-              <label>Đạo diễn:</label>
-              <input type="text" v-model="seriesForm.director" placeholder="Nhập đạo diễn..." required />
-            </div>
-            <div class="form-group">
-              <label>Thể loại:</label>
-              <input type="text" v-model="seriesForm.genre" placeholder="Nhập thể loại..." required />
-            </div>
-            <div class="form-group">
-              <label>Rating:</label>
-              <input type="number" v-model="seriesForm.rating" placeholder="Nhập rating..." min="0" max="10" step="0.1"
-                required />
-            </div>
-            <div class="form-group">
-              <label>Trạng thái:</label>
-              <select v-model="seriesForm.status" required>
-                <option value="Đang phát sóng">Đang phát sóng</option>
-                <option value="Hoàn tất">Hoàn tất</option>
-              </select>
-            </div>
-            <button type="submit" class="submit-button">{{ seriesForm.editing ? 'Cập nhật' : 'Thêm Phim Bộ' }}</button>
-          </form>
-          <div class="table-container">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Tiêu đề</th>
-                  <th>Đạo diễn</th>
-                  <th>Thể loại</th>
-                  <th>Rating</th>
-                  <th>Trạng thái</th>
-                  <th>Hành động</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="(series, index) in seriesList" :key="series.id">
-                  <td>{{ series.id }}</td>
-                  <td>{{ series.title }}</td>
-                  <td>{{ series.director }}</td>
-                  <td>{{ series.genre }}</td>
-                  <td>{{ series.rating }}</td>
-                  <td>{{ series.status }}</td>
-                  <td>
-                    <button @click="editSeries(index)" class="edit-button">Sửa</button>
-                    <button @click="deleteSeries(index)" class="delete-button">Xóa</button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+      <!-- Quản lý phim bộ -->
+      <div v-if="currentTab === 'series'" class="tab-content">
+        <h2>Quản lý Phim Bộ</h2>
+        <ul>
+          <li v-for="series in filteredSeries" :key="series.id">
+            {{ series.title }} - {{ series.director }} - {{ series.genre }} - {{ series.rating }} - {{ series.status }}
+          </li>
+        </ul>
+        <form @submit.prevent="submitSeries" class="movie-form">
+          <div class="form-group" v-for="(value, key) in seriesForm" :key="key">
+            <label>{{ formLabels[key] }}</label>
+            <input v-if="key !== 'status' && key !== 'editing' && key !== 'id'" type="text" v-model="seriesForm[key]" required />
+            <select v-else-if="key === 'status'" v-model="seriesForm.status" required>
+              <option value="Đang phát sóng">Đang phát sóng</option>
+              <option value="Hoàn tất">Hoàn tất</option>
+            </select>
           </div>
-        </div>
+          <button type="submit" class="submit-button">{{ seriesForm.editing ? 'Cập nhật' : 'Thêm Phim Bộ' }}</button>
+        </form>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Tiêu đề</th>
+              <th>Đạo diễn</th>
+              <th>Thể loại</th>
+              <th>Rating</th>
+              <th>Trạng thái</th>
+              <th>Hành động</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(series, index) in filteredSeries" :key="series.id">
+              <td>{{ series.id }}</td>
+              <td>{{ series.title }}</td>
+              <td>{{ series.director }}</td>
+              <td>{{ series.genre }}</td>
+              <td>{{ series.rating }}</td>
+              <td>{{ series.status }}</td>
+              <td>
+                <button @click="editSeries(index)" class="edit-button">Sửa</button>
+                <button @click="deleteSeries(index)" class="delete-button">Xóa</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import { useRouter } from 'vue-router';
-const router = useRouter();
 export default {
   data() {
     return {
       currentTab: 'movies',
+      searchQuery: '',
+      formLabels: {
+        title: 'Tiêu đề',
+        director: 'Đạo diễn',
+        genre: 'Thể loại',
+        rating: 'Rating',
+        status: 'Trạng thái',
+      },
       movieForm: {
         title: '',
         director: '',
@@ -162,18 +145,23 @@ export default {
         editing: false,
         id: null,
       },
-      episodeForm: {
-        seriesId: null,
-        title: '',
-        episodeNumber: '',
-        status: 'Chưa phát sóng',
-        editing: false,
-        id: null,
-      },
-      movieList: [],
-      seriesList: [],
-      episodesList: [],
+      movieList: [
+        { id: 1, title: 'Avengers', director: 'Joss Whedon', genre: 'Action', rating: 8.5, status: 'Công chiếu' },
+        { id: 2, title: 'Inception', director: 'Christopher Nolan', genre: 'Sci-Fi', rating: 9.0, status: 'Công chiếu' }
+      ],
+      seriesList: [
+        { id: 1, title: 'Breaking Bad', director: 'Vince Gilligan', genre: 'Crime', rating: 9.5, status: 'Hoàn tất' },
+        { id: 2, title: 'Game of Thrones', director: 'David Benioff & D.B. Weiss', genre: 'Fantasy', rating: 8.0, status: 'Hoàn tất' }
+      ],
     };
+  },
+  computed: {
+    filteredMovies() {
+      return this.movieList.filter(movie => movie.title.toLowerCase().includes(this.searchQuery.toLowerCase()));
+    },
+    filteredSeries() {
+      return this.seriesList.filter(series => series.title.toLowerCase().includes(this.searchQuery.toLowerCase()));
+    }
   },
   methods: {
     selectTab(tab) {
@@ -181,15 +169,35 @@ export default {
     },
     submitMovie() {
       if (this.movieForm.editing) {
-        const movieIndex = this.movieList.findIndex(
-          (movie) => movie.id === this.movieForm.id
-        );
-        this.$set(this.movieList, movieIndex, { ...this.movieForm });
+        const index = this.movieList.findIndex(movie => movie.id === this.movieForm.id);
+        this.movieList.splice(index, 1, { ...this.movieForm });
       } else {
         this.movieForm.id = this.movieList.length + 1;
         this.movieList.push({ ...this.movieForm });
       }
       this.resetMovieForm();
+    },
+    submitSeries() {
+      if (this.seriesForm.editing) {
+        const index = this.seriesList.findIndex(series => series.id === this.seriesForm.id);
+        this.seriesList.splice(index, 1, { ...this.seriesForm });
+      } else {
+        this.seriesForm.id = this.seriesList.length + 1;
+        this.seriesList.push({ ...this.seriesForm });
+      }
+      this.resetSeriesForm();
+    },
+    editMovie(index) {
+      this.movieForm = { ...this.movieList[index], editing: true };
+    },
+    editSeries(index) {
+      this.seriesForm = { ...this.seriesList[index], editing: true };
+    },
+    deleteMovie(index) {
+      this.movieList.splice(index, 1);
+    },
+    deleteSeries(index) {
+      this.seriesList.splice(index, 1);
     },
     resetMovieForm() {
       this.movieForm = {
@@ -202,24 +210,6 @@ export default {
         id: null,
       };
     },
-    editMovie(index) {
-      this.movieForm = { ...this.movieList[index], editing: true };
-    },
-    deleteMovie(index) {
-      this.movieList.splice(index, 1);
-    },
-    submitSeries() {
-      if (this.seriesForm.editing) {
-        const seriesIndex = this.seriesList.findIndex(
-          (series) => series.id === this.seriesForm.id
-        );
-        this.$set(this.seriesList, seriesIndex, { ...this.seriesForm });
-      } else {
-        this.seriesForm.id = this.seriesList.length + 1;
-        this.seriesList.push({ ...this.seriesForm });
-      }
-      this.resetSeriesForm();
-    },
     resetSeriesForm() {
       this.seriesForm = {
         title: '',
@@ -231,73 +221,33 @@ export default {
         id: null,
       };
     },
-    editSeries(index) {
-      this.seriesForm = { ...this.seriesList[index], editing: true };
-    },
-    deleteSeries(index) {
-      this.seriesList.splice(index, 1);
-    },
-    submitEpisode() {
-      if (this.episodeForm.editing) {
-        const episodeIndex = this.episodesList.findIndex(
-          (episode) => episode.id === this.episodeForm.id
-        );
-        this.$set(this.episodesList, episodeIndex, { ...this.episodeForm });
-      } else {
-        this.episodeForm.id = this.episodesList.length + 1;
-        this.episodesList.push({ ...this.episodeForm });
-      }
-      this.resetEpisodeForm();
-    },
-    resetEpisodeForm() {
-      this.episodeForm = {
-        seriesId: null,
-        title: '',
-        episodeNumber: '',
-        status: 'Chưa phát sóng',
-        editing: false,
-        id: null,
-      };
-    },
-    editEpisode(index) {
-      this.episodeForm = { ...this.episodesList[index], editing: true };
-    },
-    deleteEpisode(index) {
-      this.episodesList.splice(index, 1);
-    },
-    getSeriesTitle(seriesId) {
-      const series = this.seriesList.find((s) => s.id === seriesId);
-      return series ? series.title : '';
-    },
-  },
+    goBack() {
+      // Logic for going back
+    }
+  }
 };
 </script>
 
 <style scoped>
 .content-management {
-  max-width: 900px;
-  margin: 0 auto;
+  font-family: 'Roboto', sans-serif;
   padding: 20px;
-  background-color: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  font-family: 'Arial', sans-serif;
-  animation: fadeIn 1s ease-in-out;
+  background-color: #f5f5f5;
 }
 
 .back-button {
-  margin: 20px;
-  background-color: #3498DB;
+  background-color: #4caf50;
+  padding: 10px 15px;
   color: white;
-  padding: 10px 20px;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
   cursor: pointer;
+  font-size: 16px;
   transition: background-color 0.3s ease;
 }
 
 .back-button:hover {
-  background-color: #2980B9;
+  background-color: #45a049;
 }
 
 .movie-management {
@@ -319,20 +269,6 @@ export default {
   border: none;
   border-radius: 6px;
   cursor: pointer;
-  transition: background-color 0.3s ease, color 0.3s ease;
-  margin: 130px;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 .tabs button.active {
@@ -344,59 +280,24 @@ export default {
   margin-top: 30px;
 }
 
-h1,
-h2 {
-  font-size: 24px;
-  color: #333;
+.search-bar {
+  display: flex;
+  justify-content: flex-end;
   margin-bottom: 20px;
 }
 
-.form-group {
-  margin-bottom: 20px;
-}
-
-label {
-  font-weight: bold;
-  margin-bottom: 8px;
-}
-
-input[type='text'],
-input[type='number'],
-select {
-  width: 100%;
-  padding: 12px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
+.search-bar input {
+  width: 300px;
+  padding: 10px;
   font-size: 16px;
-  transition: border-color 0.3s ease;
-}
-
-input[type='text']:focus,
-input[type='number']:focus,
-select:focus {
-  border-color: #4caf50;
-  outline: none;
-}
-
-.submit-button {
-  background-color: #4caf50;
-  color: white;
-  padding: 12px 24px;
-  border: none;
+  border: 1px solid #ddd;
   border-radius: 6px;
-  cursor: pointer;
-  font-size: 18px;
-  transition: background-color 0.3s ease;
-}
-
-.submit-button:hover {
-  background-color: #45a049;
 }
 
 .data-table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 30px;
+  margin-top: 20px;
 }
 
 .data-table th,
@@ -412,22 +313,17 @@ select:focus {
 
 .edit-button,
 .delete-button {
-  padding: 8px 16px;
-  cursor: pointer;
-  border: none;
-  border-radius: 6px;
-  margin-right: 10px;
-  font-size: 16px;
-}
-
-.edit-button {
   background-color: #4caf50;
   color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-right: 5px;
 }
 
 .delete-button {
   background-color: #f44336;
-  color: white;
 }
 
 .edit-button:hover {
@@ -436,5 +332,64 @@ select:focus {
 
 .delete-button:hover {
   background-color: #e53935;
+}
+
+.movie-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.movie-form .form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.movie-form .form-group label {
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.movie-form .form-group input,
+.movie-form .form-group select {
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+}
+
+.submit-button {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  font-size: 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  align-self: flex-start;
+}
+
+.submit-button:hover {
+  background-color: #45a049;
+}
+
+.movie-list,
+.series-list {
+  margin-bottom: 20px;
+}
+
+.movie-list ul,
+.series-list ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.movie-list li,
+.series-list li {
+  padding: 10px;
+  background-color: #f0f0f0;
+  margin-bottom: 5px;
+  border-radius: 6px;
 }
 </style>
