@@ -1,6 +1,20 @@
 <template>
-  <div>
-    <button @click="goBack" class="back-button">← Quay lại</button>
+<div class="container">
+  <aside class="sidebar">
+    <h2>Bảng điều khiển</h2>
+    <ul>
+      <li><router-link to="/admin/movies">Quản lý phim</router-link></li>
+      <li><router-link to="/admin/finance">Quản lí tài chính</router-link></li>
+      <li><router-link to="/admin/contentmanagement">Quản lí nội dung</router-link></li>
+      <li><router-link to="/admin/vipmanagenment">Quản lí tài khoản VIP và Thanh Toán</router-link></li>
+      <li><router-link to="/admin/account">Quản lí hệ thống và bảo mật (admin)</router-link></li>
+      <li><router-link to="/admin/user">Quản lí người dùng</router-link></li>
+      <li><router-link to="/admin/statisticsandreports">Thống kê và báo cáo</router-link></li>
+      <li><router-link to="/admin/transactions">Lịch sử giao dịch</router-link></li>
+      <li><router-link to="/admin/setting">Cài đặt chung</router-link></li>
+      <li><router-link to="/login">Đăng xuất</router-link></li>
+    </ul>
+  </aside>
     <div class="finance-management">
       <h1>Quản lý Tài chính</h1>
       <div class="tabs">
@@ -76,41 +90,35 @@ const selectTab = (tab) => {
   currentTab.value = tab;
 };
 
-// Hàm quay lại
-const goBack = () => {
-  router.go(-1);
-};
 </script>
 
 <style scoped>
-body, html {
+@import "/src/assets/css/admin.css";
+body,
+html {
   margin: 0;
   padding: 0;
   font-family: 'Arial', sans-serif;
 }
 
-.back-button {
-  margin: 20px;
-  background-color: #3498DB;
-  color: white;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.back-button:hover {
-  background-color: #2980B9;
-}
-
 .finance-management {
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 20px;
-  background-color: #f5f5f5;
+  background-color: #fff;
   border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 30px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  animation: fadeIn 1s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 h1 {
@@ -171,12 +179,16 @@ h1 {
   color: #00796b;
 }
 
-.transaction-list, .payment-list, .report-list {
+.transaction-list,
+.payment-list,
+.report-list {
   list-style-type: none;
   padding: 0;
 }
 
-.transaction-list li, .payment-list li, .report-list li {
+.transaction-list li,
+.payment-list li,
+.report-list li {
   padding: 10px;
   border-bottom: 1px solid #ddd;
 }
